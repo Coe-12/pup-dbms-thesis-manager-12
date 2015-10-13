@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="/static/style.css">
+    <script type="text/javascript" src="/static/jquery-2.1.3.min.js"></script>
+</head>
+<body>
+	<div class='main'>
+		<ul class="welcome"><h4>Welcome, {{user.nickname()}} {{ first_name }} </h4> </ul>
+    	<ul class="logout"><a href="{{ url|safe }}"> <h4>{{ url_linktext }}</h4> </a></ul>
+
+		<h1>Home</h1>
+		<ul><a href="/faculty/create">Create Faculty</a></ul>
+		<ul><a href="/student/create">Create Student</a></ul>
+		<ul><a href="/university/create">Create University</a></ul>
+		<ul><a href="/college/create">Create College</a></ul>
+		<ul><a href="/department/create">Create Department</a></ul>
+		<ul><a href="/thesis/page">List Thesis</a></ul>
+	</div>
+</body>
+<script type="text/javascript" src='/static/script.js'></script>
+</html>
