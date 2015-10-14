@@ -1,5 +1,5 @@
 # app.yaml = application config file
-application: pup-dbms-thesis-manager-12
+application: pup-dbms-thesis-manager-12-2
 version: 1
 runtime: python27
 api_version: 1

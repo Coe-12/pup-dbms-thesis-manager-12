@@ -177,6 +177,27 @@ $(function(){
 		return false;
 	}
 
+	function listThesis(event) 
+	{
+		$('ul.thesis_list').empty()
+		year = $('#filter_year').val()
+		adviser = $('#filter_adviser').val()
+		university = $('#filter_university').val()
+		var thesis_list_api = '/api/handler';
+		$.get(thesis_list_api, {'year': year,'university':university,'adviser':adviser} ,function(response)
+		{
+			if (response.status == 'OK')
+			{
+				response.data.forEach(function(thesis) {
+				var thesis_info = thesis.year + "   |   " + thesis.thesisTitle + "   |   " + thesis.faculty_first_name + " " + thesis.faculty_last_name + "    |   " + thesis.thesis_creator_fname + " " + thesis.thesis_creator_lname;
+				$('ul.thesis_list').append('<li>'+thesis_info+' <a class="mybtn" href=\'/thesis/edit/'+thesis.self_id+'\'>Edit</a><a class=\'mybtn\' href=\'/thesis/delete/'+thesis.self_id+'\'>Delete</a></li>');
+				return false;
+				})
+			}
+			else 
+			{$('ul.thesis_list').append('<li>No thesis found<li>');return false;}
+		})
+	}
 
     //$('.create-form').submit(onFormSubmit);
     $('.register-form').submit(onRegister);
@@ -187,5 +208,7 @@ $(function(){
     $('.student-create-form').submit(onCreateStudent);
     $('.faculty-create-form').submit(onCreateFaculty);
     $('.thesis-create-form').submit(onCreateThesis);
+    $('#list_thesis').click(listThesis);
+
     //loadThesis();
 });

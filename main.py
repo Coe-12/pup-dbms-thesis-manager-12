@@ -6,7 +6,7 @@ import logging
 import json
 import urllib
 from google.appengine.api import users
-from google.appengine.api import simplejson as json
+#from google.appengine.api import simplejson as json
 import csv
 import re
 
@@ -274,13 +274,11 @@ class importCSV(webapp2.RequestHandler):
             f = csv.reader(open(csvfile , 'r'),skipinitialspace=True)
             counter = 1
             for row in f:
-                # logging.info(counter)
                 thesis = Thesis()
                 th = Thesis.query(Thesis.thesisTitle == row[4]).fetch()
-                # know if thesis title already in database
                 if not th:
                     if len(row[7]) > 2:
-                        adviser_name = row[7] # 'Rodolfo Talan'
+                        adviser_name = row[7]
                         x = adviser_name.split(' ')
                         adv_fname = x[0]
                         adv_lname = x[1]
@@ -330,7 +328,7 @@ class importCSV(webapp2.RequestHandler):
                     adv_fname = ''
                     adv_lname = ''
                     counter=counter+1
-            self.response.write('CSV imported successfully')
+            self.response.write('Success!<ul><a href="/home">Home</a></ul>')
         else:
             self.response.write(error)
 
@@ -398,9 +396,9 @@ class createDepartment(webapp2.RequestHandler):
         department.put()
 
 class createThesiss(webapp2.RequestHandler):
-    def get(self):
-        template = JINJA_ENVIRONMENT.get_template('thesis_create.html')
-        self.response.write(template.render())
+    # def get(self):
+    #     template = JINJA_ENVIRONMENT.get_template('thesis_create.html')
+    #     self.response.write(template.render())
     def post(self):
         thesis = Thesis()
         #thesis.university = self.request.get('university')
@@ -413,6 +411,46 @@ class createThesiss(webapp2.RequestHandler):
         thesis.abstract = self.request.get('abstract')
         thesis.put()
 
+    def get(self):
+        user = users.get_current_user()
+        url = users.create_logout_url(self.request.uri)
+        url_linktext = 'Logout'
+
+        universities = []
+        colleges = []
+        departments = []
+
+        f = Faculty.query(projection=[Faculty.faculty_first_name,Faculty.faculty_last_name]).order(+Faculty.faculty_last_name).fetch()
+        u = University.query(projection=[University.university_name]).order(+University.university_name).fetch()
+        c = College.query(projection=[College.college_name]).order(+College.college_name).fetch()
+        d = Department.query(projection=[Department.department_name]).order(+Department.department_name).fetch()
+
+        for univ in u:
+            if univ.university_name not in universities:
+                universities.append(univ.university_name)
+
+        for col in c:
+            if col.college_name not in colleges:
+                colleges.append(col.college_name)
+
+        for dept in d:
+            if dept.department_name not in departments:
+                departments.append(dept.department_name)
+
+        template_data = {
+            'user': user,
+            'url': url,
+            'url_linktext': url_linktext,
+            'faculty':f,
+            'universities':universities,
+            'colleges' : colleges,
+            'departments' : departments
+        }
+        if user:
+            template = JINJA_ENVIRONMENT.get_template('thesis_create.html')
+            self.response.write(template.render(template_data))
+        else:
+            self.redirect('/login');
 class homepage(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
@@ -545,6 +583,103 @@ class thesisList(webapp2.RequestHandler):
                 'status':'Error',
             }
             self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(json.dumps(response))
+
+    def post(self):
+        th = Thesis.query(Thesis.thesisTitle == self.request.get('thesisTitle')).fetch()
+        thesis = Thesis()
+        thesis.thesisTitle = self.request.get('thesisTitle')
+        thesis.abstract = self.request.get('abstract')
+        thesis.year = int(self.request.get('year'))
+        thesis.section = int(self.request.get('section'))
+
+        proponents = []
+        if self.request.get('thesis_member1'):
+            proponents.append(self.request.get('thesis_member1'))
+        if self.request.get('thesis_member2'):
+            proponents.append(self.request.get('thesis_member2'))
+        if self.request.get('thesis_member3'):
+            proponents.append(self.request.get('thesis_member3'))
+        if self.request.get('thesis_membe4'):
+            proponents.append(self.request.get('thesis_member4'))
+        if self.request.get('thesis_member5'):
+            proponents.append(self.request.get('thesis_member5'))
+
+        adviser = self.request.get('adviser')
+        univ = self.request.get('university')
+        col = self.request.get('college')
+        dept = self.request.get('department')
+
+        if len(th) >= 1:
+            self.response.headers['Content-Type'] = 'application/json'
+            response = {
+                'status':'Cannot create thesis. Title may be already exist'
+            }
+            self.response.out.write(json.dumps(response))
+
+        else:
+            for i in range(0,len(proponents)):
+                name = proponents[i].title().split(' ')
+                size = len(name)
+                s = Student()
+                if size >= 1:
+                    s.student_first_name = name[0]
+                if size >= 2:
+                    s.student_middle_name = name[1]
+                if size >= 3:
+                    s.student_last_name = name[2]
+                thesis.thesis_student_keys.append(s.put())
+
+            if len(adviser) > 2:
+                adviser_name = adviser
+                x = adviser_name.title().split(' ')
+                sizex = len(x)
+                if sizex >= 1:
+                    adv_fname = x[0]
+                else:
+                    adv_fname = None
+
+                if sizex >= 2:
+                    adv_midname = x[1]
+                else:
+                    adv_midname = None
+
+                if sizex >= 3:
+                    adv_lname = x[2]
+                else:
+                    adv_lname = None
+
+                adviser_keyname = adviser_name.strip().replace(' ', '').lower()
+                adv = Faculty.get_by_key(adviser_keyname)
+                if adv is None:
+                    adv = Faculty(key=ndb.Key(Faculty, adviser_keyname), faculty_first_name=adv_fname, faculty_last_name=adv_lname, faculty_middle_name=adv_midname)
+                    thesis.thesis_adviser_key = adv.put()
+                else:
+                    thesis.thesis_adviser_key = adv.key
+            else:
+                adv_fname = 'Anonymous'
+                adv = Faculty(faculty_first_name=adv_fname, faculty_last_name=adv_lname)
+                thesis.thesis_adviser_key = adv.put()
+
+
+            university = University(university_name = univ)
+            university.put()
+            college = College(college_name = col, college_university_key = university.key)
+            college.put()
+            department = Department(department_name = dept, department_college_key = college.key)
+            thesis.thesis_department_key = department.put()
+
+            user = users.get_current_user()
+            user_key = ndb.Key('User',user.user_id())
+
+            thesis.thesis_created_by = user_key
+
+            thesis.put()
+
+            self.response.headers['Content-Type'] = 'application/json'
+            response = {
+            'status':'OK'
+            }
             self.response.out.write(json.dumps(response))
 
 app = webapp2.WSGIApplication([

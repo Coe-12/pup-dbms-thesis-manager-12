@@ -7,11 +7,41 @@
 </head>
 <body>
 <div class='main'>
+    <a href="/home">Go back to home</a><br>
     <h1>Create Thesis</h1>
     <form method="POST" class='thesis-create-form' id='formThesis'>
-        <input type='text' name='university' placeholder='University'/>
-        <input type='text' name='college' placeholder='College'/>
-        <input type='text' name='department' placeholder='Department'/>
+        <div class="form-group filt">
+            <label><a href="/university/create">+</a>
+            <select id="filter_university" class="form-control">
+                <option selected disabled value="">University</option>
+                {% for u in universities%}
+                <option value="{{u.university_name}}">{{u}}</option>
+                {% endfor %}
+            </select>
+            </label>
+        </div>
+
+        <div class="form-group filt">
+            <label><a href="/college/create">+</a>
+            <select id="filter_college" class="form-control">
+                <option selected disabled value="">College</option>
+                {% for c in colleges%}
+                <option value="{{c.college_name}}">{{c}}</option>
+                {% endfor %}
+            </select>
+            </label>
+        </div>
+
+        <div class="form-group filt">
+            <label><a href="/department/create">+</a>
+            <select id="filter_department" class="form-control">
+                <option selected disabled value="">Department</option>
+                {% for d in departments%}
+                <option value="{{d.department_name}}">{{d}}</option>
+                {% endfor %}
+            </select>
+            </label>
+        </div>
         <input type='text' name='title' placeholder='Title'/>
 
         <label><br>Thesis Proponents
@@ -21,7 +51,16 @@
         <input type='text' name='proponent4' placeholder='proponent4'/>
         <input type='text' name='proponent5' placeholder='proponent5'/></label>
 
-        <input type='text' name='adviser' placeholder='Adviser'/>
+        <div class="form-group filt">
+            <label><a href="/faculty/create">+</a>
+            <select id="filter_adviser" class="form-control">
+                <option selected disabled value="">Adviser</option>
+                {% for f in faculty%}
+                <option value="{{f.faculty_first_name}} {{f.faculty_last_name}}">{{f.faculty_first_name}} {{f.faculty_last_name}}</option>
+                {% endfor %}
+            </select>
+            </label>
+        </div>
 
         <label> Year
             <select name='year' form='formThesis'>
@@ -44,8 +83,9 @@
         </label>
 
         <textarea type='text 'name='abstract' rows="10" cols="54" placeholder='Abstract'></textarea>
+
         
-        <input type='submit' value='Create Thesis'/>
+        <input type='submit' value='Create Thesis(In Progress)'/>
     </form>  
 </div>
 

@@ -9,8 +9,8 @@
 	<div class='main'>
 		<ul class="welcome"><h4>Welcome, {{user.nickname()}} {{ first_name }} </h4> </ul>
     	<ul class="logout"><a href="{{ url|safe }}"> <h4>{{ url_linktext }}</h4> </a></ul>
-
-    	<h1>Thesis Filters:</h1>
+        <a href="/home">Go back to home</a><br>
+    	<h1>Filter List:</h1>
         <div class="form-group filt">
             <select id="filter_year" class="form-control">
                 <option value="2011">2011</option>
@@ -39,7 +39,10 @@
         </div>
 
 		<h1>Thesis List</h1>
-		
+		<button id="list_thesis">List (In Progress)</button>
+        <ul class="thesis_list">
+
+        </ul>
         </ul>
 	</div>
 </body>
