@@ -249,11 +249,10 @@ class editThesis(webapp2.RequestHandler):
 
     def post(self,thesisId):
         thesis = Thesis.get_by_id(int(thesisId))      
-        thesis.year = self.request.get('year')
+        thesis.year = int(self.request.get('year'))
         thesis.thesisTitle = self.request.get('thesisTitle')
         thesis.abstract = self.request.get('abstract')
-        thesis.adviser = self.request.get('adviser')
-        thesis.section = self.request.get('section')
+        thesis.section = int(self.request.get('section'))
         thesis.put()
         self.redirect('/')
 
@@ -396,61 +395,63 @@ class createDepartment(webapp2.RequestHandler):
         department.put()
 
 class createThesiss(webapp2.RequestHandler):
-    # def get(self):
-    #     template = JINJA_ENVIRONMENT.get_template('thesis_create.html')
-    #     self.response.write(template.render())
-    def post(self):
-        thesis = Thesis()
-        #thesis.university = self.request.get('university')
-        #thesis.college = self.request.get('college')
-        #thesis.thesis_department_key = self.request.get('department')
-        thesis.thesisTitle = self.request.get('title')
-        #thesis.thesis_adviser_key = self.request.get('adviser')
-        thesis.year = int(self.request.get('year'))
-        thesis.section = int(self.request.get('section'))
-        thesis.abstract = self.request.get('abstract')
-        thesis.put()
-
     def get(self):
-        user = users.get_current_user()
-        url = users.create_logout_url(self.request.uri)
-        url_linktext = 'Logout'
 
-        universities = []
-        colleges = []
-        departments = []
+        thesis = Thesis.query().order(-Thesis.date).fetch()
+        thesis_list = []
 
-        f = Faculty.query(projection=[Faculty.faculty_first_name,Faculty.faculty_last_name]).order(+Faculty.faculty_last_name).fetch()
-        u = University.query(projection=[University.university_name]).order(+University.university_name).fetch()
-        c = College.query(projection=[College.college_name]).order(+College.college_name).fetch()
-        d = Department.query(projection=[Department.department_name]).order(+Department.department_name).fetch()
-
-        for univ in u:
-            if univ.university_name not in universities:
-                universities.append(univ.university_name)
-
-        for col in c:
-            if col.college_name not in colleges:
-                colleges.append(col.college_name)
-
-        for dept in d:
-            if dept.department_name not in departments:
-                departments.append(dept.department_name)
-
-        template_data = {
-            'user': user,
-            'url': url,
-            'url_linktext': url_linktext,
-            'faculty':f,
-            'universities':universities,
-            'colleges' : colleges,
-            'departments' : departments
+        for t in thesis:
+            thesis_list.append({
+                'year' : t.year,
+                'thesisTitle' : t.thesisTitle,
+                'abstract' : t.abstract,
+                'section' : t.section,
+                'id' : t.key.id()
+            })
+        #return list to client
+        response = {
+            'result' : 'OK',
+            'data' : thesis_list
         }
-        if user:
-            template = JINJA_ENVIRONMENT.get_template('thesis_create.html')
-            self.response.write(template.render(template_data))
-        else:
-            self.redirect('/login');
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(json.dumps(response))
+
+
+    # def post(self):
+    #     thesis = Thesis()
+    #     #thesis.university = self.request.get('university')
+    #     #thesis.college = self.request.get('college')
+    #     #thesis.thesis_department_key = self.request.get('department')
+    #     thesis.thesisTitle = self.request.get('title')
+    #     #thesis.thesis_adviser_key = self.request.get('adviser')
+    #     thesis.year = int(self.request.get('year'))
+    #     thesis.section = int(self.request.get('section'))
+    #     thesis.abstract = self.request.get('abstract')
+    #     thesis.put()
+
+    def post(self):
+        user = users.get_current_user()
+        t = Thesis()
+        t.thesisTitle = self.request.get('title')
+        t.abstract = self.request.get('abstract')
+        #t.adviser = self.request.get('adviser')
+        t.year = int(self.request.get('year'))
+        t.section = int(self.request.get('section'))
+        t.userName = user.nickname()
+        t.userId = user.user_id()
+        t.put()
+
+        
+        self.response.headers['Content-Type'] = 'application/json'
+        response = {
+            'result' : 'OK',
+            'data': {
+                'year' : t.year,
+                'thesisTitle' : t.thesisTitle
+            }
+        }
+        self.response.out.write(json.dumps(response))
+
 class homepage(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
@@ -682,10 +683,51 @@ class thesisList(webapp2.RequestHandler):
             }
             self.response.out.write(json.dumps(response))
 
+class createThesisPage(webapp2.RequestHandler):
+    def get(self):
+
+        user = users.get_current_user()
+        url = users.create_logout_url(self.request.uri)
+        url_linktext = 'Logout'
+
+        universities = []
+        colleges = []
+        departments = []
+
+        f = Faculty.query(projection=[Faculty.faculty_first_name,Faculty.faculty_last_name]).order(+Faculty.faculty_last_name).fetch()
+        u = University.query(projection=[University.university_name]).order(+University.university_name).fetch()
+        c = College.query(projection=[College.college_name]).order(+College.college_name).fetch()
+        d = Department.query(projection=[Department.department_name]).order(+Department.department_name).fetch()
+
+        for univ in u:
+            if univ.university_name not in universities:
+                universities.append(univ.university_name)
+
+        for col in c:
+            if col.college_name not in colleges:
+                colleges.append(col.college_name)
+
+        for dept in d:
+            if dept.department_name not in departments:
+                departments.append(dept.department_name)
+
+        template_data = {
+            'user': user,
+            'url': url,
+            'url_linktext': url_linktext,
+            'faculty':f,
+            'universities':universities,
+            'colleges' : colleges,
+            'departments' : departments
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('thesis_create.html')
+        self.response.write(template.render(template_data))
+
 app = webapp2.WSGIApplication([
     ('/home', homepage),
     ('/', homepage),
-    ('/api/thesis', CreateThesis),
+    ('/api/thesis', createThesiss),
     ('/thesis/delete/(.*)', deleteThesis),
     ('/login', login),
     ('/loginurl', loginurl),
@@ -698,7 +740,7 @@ app = webapp2.WSGIApplication([
     ('/university/create' , createUniversity),
     ('/college/create' , createCollege),
     ('/department/create' , createDepartment),
-    ('/thesis/create' , createThesiss),
+    ('/thesis/create' , createThesisPage),
     ('/thesis/page', thesisListPage),
     ('/thesis/list', thesisList)
 

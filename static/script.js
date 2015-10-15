@@ -157,26 +157,6 @@ $(function(){
 		return false;
 	}
 	
-	function onCreateThesis(event){
-		var data = $(event.target).serializeArray();
-		var thesis = {};
-
-		for(var i = 0; i<data.length ; i++){
-			thesis[data[i].name] = data[i].value;
-		}
-
-		var thesis_create_api = '/thesis/create';
-
-		$.post(thesis_create_api, thesis, function(response){
-			// read response from server
-			if (response.status = 'OK') {
-				location.href = '/home';
-			}
-		});
-
-		return false;
-	}
-
 	function listThesis(event) 
 	{
 		$('ul.thesis_list').empty()
@@ -197,6 +177,37 @@ $(function(){
 			else 
 			{$('ul.thesis_list').append('<li>No thesis found<li>');return false;}
 		})
+	}
+
+	function onCreateThesis(event){
+		var data = $(event.target).serializeArray();
+		var thesis = {};
+
+		for(var i = 0; i<data.length ; i++){
+			thesis[data[i].name] = data[i].value;
+		}
+
+		var thesis_create_api = '/api/thesis';
+
+		$.post(thesis_create_api, thesis, function(response){
+			// read response from server
+			if (response.status = 'OK') {
+				location.href = '/home';
+			}
+		});
+
+		return false;
+	}
+
+	function listThesis(){
+		var thesis_list_api = '/api/thesis';
+		$.get(thesis_list_api, {} , function(response) {
+			console.log('.thesis_list', response)
+			response.data.forEach(function(thesis){
+				var thesis_list = thesis.year + ' ' + thesis.thesisTitle;
+				$('.thesis_list').append('<li>' + thesis_list + '<br><a href=\"/thesis/delete/'+thesis.id+'\"><button type=\"submit\">DELETE</button></a>'+ '<a href=\"/thesis/edit/'+thesis.id+'\"><button type=\"submit\">EDIT</button></a>' + '</li>')
+			});
+		});
 	}
 
     //$('.create-form').submit(onFormSubmit);
