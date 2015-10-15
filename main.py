@@ -441,7 +441,6 @@ class createThesiss(webapp2.RequestHandler):
         t.userId = user.user_id()
         t.put()
 
-        
         self.response.headers['Content-Type'] = 'application/json'
         response = {
             'result' : 'OK',
@@ -724,6 +723,29 @@ class createThesisPage(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('thesis_create.html')
         self.response.write(template.render(template_data))
 
+
+class thesisDetails(webapp2.RequestHandler):
+    def get(self, thesisId):
+        thesis = Thesis.get_by_id(int(thesisId))
+        user = users.get_current_user()
+        url = users.create_logout_url(self.request.uri)
+        template_value = {
+            'thesis' : thesis,
+            'user' : user,
+            'url' : url
+        }
+        template = JINJA_ENVIRONMENT.get_template('thesis_details.html')
+        self.response.write(template.render(template_value))
+
+    # def post(self,thesisId):
+    #     thesis = Thesis.get_by_id(int(thesisId))      
+    #     thesis.year = int(self.request.get('year'))
+    #     thesis.thesisTitle = self.request.get('thesisTitle')
+    #     thesis.abstract = self.request.get('abstract')
+    #     thesis.section = int(self.request.get('section'))
+    #     thesis.put()
+    #     self.redirect('/')
+
 app = webapp2.WSGIApplication([
     ('/home', homepage),
     ('/', homepage),
@@ -742,6 +764,7 @@ app = webapp2.WSGIApplication([
     ('/department/create' , createDepartment),
     ('/thesis/create' , createThesisPage),
     ('/thesis/page', thesisListPage),
-    ('/thesis/list', thesisList)
+    ('/thesis/list', thesisList),
+    ('/thesis/details/(.*)', thesisDetails)
 
 ], debug=True)

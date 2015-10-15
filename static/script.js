@@ -205,7 +205,7 @@ $(function(){
 			console.log('.thesis_list', response)
 			response.data.forEach(function(thesis){
 				var thesis_list = thesis.year + ' ' + thesis.thesisTitle;
-				$('.thesis_list').append('<li>' + thesis_list + '<br><a href=\"/thesis/delete/'+thesis.id+'\"><button type=\"submit\">DELETE</button></a>'+ '<a href=\"/thesis/edit/'+thesis.id+'\"><button type=\"submit\">EDIT</button></a>' + '</li>')
+				$('.thesis_list').append('<li>' + thesis_list + '<br><a href=\"/thesis/delete/'+thesis.id+'\"><button type=\"submit\">DELETE</button></a>'+ '<a href=\"/thesis/edit/'+thesis.id+'\"><button type=\"submit\">EDIT</button></a>' + '<a href=\"/thesis/details/'+thesis.id+'\"><button type=\"submit\">Details</button></a>' + '</li>')
 			});
 		});
 	}
